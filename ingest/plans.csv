@@ -1,0 +1,26 @@
+plan_id,complexity,issuer,plan_name
+32225MT0070004,moderate,Mountain Health CO-OP,Plus Gold
+32225MT0070006,moderate,Mountain Health CO-OP,Plus Bronze
+32225MT0140001,simple,Mountain Health CO-OP,PEAK PPO GOLD
+32225MT0140002,simple,Mountain Health CO-OP,PEAK PPO SILVER
+32225MT0140003,simple,Mountain Health CO-OP,PEAK PPO BRONZE
+32225MT0160001,simple,Mountain Health CO-OP,ROCKY MOUNTAIN GOLD
+32225MT0160002,simple,Mountain Health CO-OP,ROCKY MOUNTAIN SILVER
+32225MT0160006,simple,Mountain Health CO-OP,ROCKY MOUNTAIN BRONZE
+38166WI0140001,simple,Security Health Plan,Premier HMO $750 - 10%
+38166WI0140004,simple,Security Health Plan,"Premier HMO $1,500 - 30%"
+38166WI0140011,simple,Security Health Plan,"Premier HMO $3,500 - 30%"
+38166WI0140033,moderate,Security Health Plan,"Premier HMO $3,500 HDHP"
+38166WI0140037,moderate,Security Health Plan,"Premier HMO $7,500 HDHP"
+38166WI0140040,simple,Security Health Plan,"Premier HMO $2,500 - 20% Copay"
+38166WI0140044,simple,Security Health Plan,"Premier HMO $9,500"
+38166WI0150001,simple,Security Health Plan,Premier POS $750 - 10%
+38166WI0150044,simple,Security Health Plan,"Premier POS $9,500"
+46944AL0280001,simple,Blue Cross and Blue Shield of Alabama,Blue Choice Platinum for Business
+46944AL0340001,moderate,Blue Cross and Blue Shield of Alabama,Blue Access Gold for Business
+46944AL0380001,moderate,Blue Cross and Blue Shield of Alabama,Blue Secure Silver for Business
+46944AL0430001,simple,Blue Cross and Blue Shield of Alabama,Blue Saver Bronze for Business
+57601NH0350005,moderate,Anthem Blue Cross and Blue Sheld,Anthem Gold Preferred Blue PPO 2000/0%/6500 RxD
+57601NH0350016,moderate,Anthem Blue Cross and Blue Sheld,Anthem Silver Preferred Blue PPO 5000/0%/9000
+96751NH0160016,moderate,Anthem Blue Cross and Blue Shield,Anthem Gold Pathway X HMO 2000/10%/7500
+96751NH0160037,moderate,Anthem Blue Cross and Blue Shield,Anthem Bronze Access Blue New England HMO 7000/50%/8000 w/HSA

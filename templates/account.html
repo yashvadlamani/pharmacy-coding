@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ account.name }} · Pharmacy plan workspace{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('index') }}">Accounts</a> / {{ account.account_id }}</p>
+<h1>{{ account.name }} {% with p = {'status': status} %}{% include "_status.html" %}{% endwith %}</h1>
+
+<div class="facts">
+  <div><span>Account</span>{{ account.account_id }}</div>
+  <div><span>Stage</span>{{ account.stage }}</div>
+  <div><span>State</span>{{ account.state }}</div>
+  <div><span>Employees</span>{{ account.employees }}</div>
+  <div><span>Sales rep</span>{{ account.sales_rep }}</div>
+  <div><span>Effective date</span>{{ account.effective_date }}
+    ({% if days >= 0 %}in {{ days }} days{% else %}{{ -days }} days ago{% endif %})</div>
+</div>
+
+<h2>Plans</h2>
+<table class="grid">
+  <thead>
+    <tr>
+      <th>Plan</th><th>Role</th><th>Insurer and formulary</th><th>Fit</th><th class="num">Open questions</th>
+      <th>Status</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in plans %}
+    <tr>
+      <td><a href="{{ url_for('plan', plan_id=p.plan_id) }}">{{ p.plan_name or p.plan_id }}</a>
+        <div class="sub">{{ p.plan_id }} · {{ p.metal }}</div></td>
+      <td>{{ p.role }}</td>
+      <td>{{ p.issuer }}<div class="sub">Formulary {{ p.formulary_id }}</div></td>
+      <td>{% with fit = p.worst_fit %}{% include "_fit.html" %}{% endwith %}
+        <div class="sub">{% for rating, count in p.fit.items() if count %}{{ count }} {{ rating|lower }}{% if not loop.last %} · {% endif %}{% endfor %}</div></td>
+      <td class="num">{{ p.open }}{% if p.blocking %}<div class="sub">{{ p.blocking }} blocking</div>{% endif %}</td>
+      <td>{% include "_status.html" %}</td>
+      <td><a href="{{ url_for('plan', plan_id=p.plan_id) }}">Summary</a> ·
+        <a href="{{ url_for('drugs', plan_id=p.plan_id) }}">Drugs</a> ·
+        <a href="{{ url_for('handoff', plan_id=p.plan_id) }}">Handoff</a>
+        {% if current and current.plan_id != p.plan_id %}
+        <div><a href="{{ url_for('compare', a=current.plan_id, b=p.plan_id) }}">Compare with current plan</a></div>
+        {% endif %}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7">No plans have been processed for this account yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if plans|length > 1 %}
+<h2>Compare any two plans</h2>
+<form method="get" action="{{ url_for('compare') }}" class="decide">
+  <select name="a">{% for p in plans %}<option value="{{ p.plan_id }}">{{ p.plan_name }} ({{ p.role }})</option>{% endfor %}</select>
+  <select name="b">{% for p in plans %}<option value="{{ p.plan_id }}" {{ 'selected' if loop.index == 2 }}>{{ p.plan_name }} ({{ p.role }})</option>{% endfor %}</select>
+  <button class="primary" type="submit">Compare</button>
+</form>
+{% endif %}
+<p class="sub">The fit column shows the item most in need of attention on each plan. Standard and configurable items
+  can be promised; custom and unsupported items need approval or an alternative before the proposal goes out.</p>
+{% endblock %}

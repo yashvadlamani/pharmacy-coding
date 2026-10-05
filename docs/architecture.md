@@ -2,7 +2,7 @@
 
 **AI drafts, sales confirms, coders approve.** Nothing goes to a client without a rep's review, and nothing loads to the adjudication platform without a coder's approval.
 
-This is the proposed design. Nothing is built yet; the [implementation plan](implementation-plan.md) covers how it gets built.
+This is the target design. A rough first draft of the prototype is built; [pipeline.md](pipeline.md) describes what runs today and what does not, and the [implementation plan](implementation-plan.md) covers the rest.
 
 ## What the product is
 
@@ -84,19 +84,20 @@ A rules-based simulator follows the sequence a real claim does: eligibility, net
 
 Simulator output is illustrative and is labeled as such. It is not a quote or a claims guarantee.
 
-## Proposed services by stage
+## Services by stage
 
-The stack mirrors the medical benefit coding prototype so that both products share infrastructure.
+The stack mirrors the medical benefit coding prototype so that both products share infrastructure. Resource names and versions are in [pipeline.md](pipeline.md#services-used).
 
-| Stage | Prototype | Production |
-| --- | --- | --- |
-| Accounts and access | Sample accounts in a simple store | CRM integration for accounts, opportunities, and ownership; SSO; access limited to a rep's own accounts |
-| Document store | Cloud object storage holding public plan documents and answer keys | Client and prospect documents in the approved, encrypted environment |
-| 1. Ingest | OCR and layout service; rule-based classification and section splitting | Same, plus RFP and intake-form templates |
-| 2. Extract | Enterprise LLM with structured JSON output | Same model family under a BAA, versions pinned |
-| 3. Map and fit | Placeholder catalog of standard offerings and placeholder code table; RxNorm and FDA NDC Directory for drug identity | The firm's standard offering catalog, code library, and list IDs; licensed drug compendium |
-| 4. Validate | Conflict and completeness rules, regulatory checks, member cost simulator, LLM judge | Plus rule sets for the launch line of business |
-| 5. Review and confirm | Web account workspace; exportable plan summary | Plus client confirmation record, comparison exports, and CRM status updates |
-| 6. Handoff | Downloadable coding package | Delivery into the coding team's intake queue with coder approval and status return; direct platform load is a later release |
+| Stage | Prototype | Status | Production |
+| --- | --- | --- | --- |
+| Accounts and access | Fictional accounts in a CSV; one shared password | Built | CRM integration for accounts, opportunities, and ownership; SSO; access limited to a rep's own accounts |
+| Document store | Azure Blob Storage holding public plan documents, formulary files, and answer keys | Built | Client and prospect documents in the approved, encrypted environment |
+| 1. Ingest | Azure Document Intelligence (`prebuilt-read`); rule-based classification and section splitting | Built for SBCs | Same, plus RFP and intake-form templates |
+| 2. Extract | Azure OpenAI (`gpt-5-mini`) with structured JSON output; 19 plan-level fields | Built (rough draft) | Same model family under a BAA, versions pinned |
+| Drug level | Insurers' machine-readable formulary files, drugs matched through RxNorm | Built from published files; extraction from formulary documents not built | Licensed drug compendium; client-specific overrides |
+| 3. Map and fit | Placeholder catalog, rule-based fit ratings, and generated placeholder codes | Built (rough draft) | The firm's standard offering catalog, code library, and list IDs |
+| 4. Validate | Consistency, reconciliation, and intake-conflict checks; question generation; member cost calculator | Built (rough draft); LLM judge and regulatory rule sets not built | Plus rule sets for the launch line of business |
+| 5. Review and confirm | Flask workspace on Azure App Service; answers and sign-offs in Azure Table Storage | Built (rough draft); year-over-year comparison and document upload not built | Plus client confirmation record, comparison exports, and CRM status updates |
+| 6. Handoff | Coding package on screen and as JSON, with coder approve or return | Built (rough draft) | Delivery into the coding team's intake queue with status return; direct platform load is a later release |
 
 See the [pharmacy coding process](pharmacy-coding-process.md) for the domain background and the [implementation plan](implementation-plan.md) for delivery phases, compliance, testing, and success metrics.

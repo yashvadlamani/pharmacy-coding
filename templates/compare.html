@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Compare plans · Pharmacy plan workspace{% endblock %}
+{% macro drug(status) %}{% if status %}{{ status.tier }} · {{ status.class_label }}{% if status.pa or status.st or status.ql %}<div class="sub">{{ restrictions(status) }}</div>{% endif %}{% else %}<span class="pill fail">Not covered</span>{% endif %}{% endmacro %}
+{% macro money(value) %}{% if value is none %}to be confirmed{% else %}{{ "${:,.2f}".format(value) }}{% endif %}{% endmacro %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('index') }}">Accounts</a> /
+  {% if a.account %}<a href="{{ url_for('account', account_id=a.account.account_id) }}">{{ a.account.name }}</a> /{% endif %}
+  compare</p>
+<h1>Plan comparison</h1>
+<div class="facts">
+  <div><span>{{ a.role or 'Plan A' }}</span><a href="{{ url_for('plan', plan_id=a.meta.plan_id) }}">{{ a.meta.plan_name }}</a>
+    <div class="sub">{{ a.meta.issuer }} · formulary {{ a.meta.formulary_id }}</div></div>
+  <div><span>{{ b.role or 'Plan B' }}</span><a href="{{ url_for('plan', plan_id=b.meta.plan_id) }}">{{ b.meta.plan_name }}</a>
+    <div class="sub">{{ b.meta.issuer }} · formulary {{ b.meta.formulary_id }}</div></div>
+  <div><a href="{{ url_for('compare', a=b.meta.plan_id, b=a.meta.plan_id) }}">Swap sides</a></div>
+</div>
+
+<h2>Plan design</h2>
+<section>
+<table class="grid">
+  <thead><tr><th></th><th>{{ a.meta.plan_name }}</th><th>{{ b.meta.plan_name }}</th><th></th></tr></thead>
+  <tbody>
+    {% for line in lines %}
+    {% if loop.first or line.heading != lines[loop.index0 - 1].heading %}
+    <tr><th colspan="4">{{ line.heading }}</th></tr>
+    {% endif %}
+    <tr>
+      <td>{{ line.label }}</td><td>{{ line.a }}</td><td>{{ line.b }}</td>
+      <td>{% if line.differs %}<span class="pill warn">Differs</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</section>
+
+<h2>What changes for commonly used drugs</h2>
+{% for side in (a, b) %}{% for warning in side.validated.formulary_warnings %}
+<p class="note">Formulary data warning for {{ side.meta.plan_name }}: {{ warning }}</p>
+{% endfor %}{% endfor %}
+<p class="lead">Of {{ drug_total }} commonly dispensed drugs on either formulary, moving from the first plan to the second:
+  <span class="pill fail">{{ counts.worse }} worse for members</span>
+  <span class="pill warn">{{ counts.limit }} gain a quantity limit only</span>
+  <span class="pill pass">{{ counts.better }} better</span>
+  <span class="pill muted">{{ counts.same }} unchanged</span></p>
+<section>
+<table class="grid">
+  <thead><tr><th>Drug</th><th>{{ a.meta.plan_name }}</th><th>{{ b.meta.plan_name }}</th><th>What changes</th></tr></thead>
+  <tbody>
+    {% for row in changed %}
+    <tr>
+      <td>{{ row.name }}</td><td>{{ drug(row.current) }}</td><td>{{ drug(row.proposed) }}</td>
+      <td><span class="pill {{ 'fail' if row.impact == 'worse' else 'warn' if row.impact == 'limit' else 'pass' }}">{{ row.changes|join('; ') }}</span></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4">No changes: both plans treat these drugs the same way.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</section>
+<p class="sub">Drugs are the most dispensed in Medicare Part D, a stand-in for the account's own utilization. Changes
+  compare drug class (generic, preferred brand, non-preferred brand, specialty), not tier number, because the two
+  formularies may number their tiers differently.</p>
+
+<h2>What a member would pay</h2>
+<section>
+<table class="grid">
+  <thead>
+    <tr><th rowspan="2">Prescription</th><th colspan="2">{{ a.meta.plan_name }}</th><th colspan="2">{{ b.meta.plan_name }}</th></tr>
+    <tr><th class="num">First fill</th><th class="num">After deductible</th><th class="num">First fill</th><th class="num">After deductible</th></tr>
+  </thead>
+  <tbody>
+    {% for c in costs %}
+    <tr>
+      <td>{{ c.label }}<div class="sub">Drug price {{ "${:,.2f}".format(c.a.allowed) }}</div></td>
+      <td class="num">{{ money(c.a.first_fill) }}<div class="sub">{{ c.a.tier or 'Not covered' }}</div></td>
+      <td class="num">{{ money(c.a.after_deductible) }}</td>
+      <td class="num">{{ money(c.b.first_fill) }}<div class="sub">{{ c.b.tier or 'Not covered' }}</div></td>
+      <td class="num">{{ money(c.b.after_deductible) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</section>
+<p class="sub">Illustrative only: prices are public average acquisition costs (NADAC), not contracted rates. This is
+  not a quote.</p>
+{% endblock %}

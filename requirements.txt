@@ -1,0 +1,6 @@
+openai>=1.40
+azure-data-tables>=12.5
+azure-storage-blob>=12.19
+flask>=3.0
+gunicorn>=22.0
+pytest>=8

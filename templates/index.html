@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Accounts</h1>
+<p class="lead">Each account's pharmacy plans are read from their plan documents, checked against what the platform
+  can administer, and listed with the questions still open for the client. A plan goes to coding once the client
+  confirms it.</p>
+
+<table class="grid">
+  <thead>
+    <tr>
+      <th>Account</th><th>Stage</th><th>Sales rep</th><th>Effective date</th><th class="num">Plans</th>
+      <th class="num">Open questions</th><th class="num">Custom or unsupported items</th><th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in accounts %}
+    <tr>
+      <td><a href="{{ url_for('account', account_id=a.account_id) }}">{{ a.name }}</a>
+        <div class="sub">{{ a.account_id }} · {{ a.state }} · {{ a.employees }} employees</div></td>
+      <td>{{ a.stage }}</td>
+      <td>{{ a.sales_rep }}</td>
+      <td>{{ a.effective_date }}
+        <div class="sub">{% if a.days >= 0 %}in {{ a.days }} days{% else %}{{ -a.days }} days ago{% endif %}</div></td>
+      <td class="num">{{ a.plan_count }}</td>
+      <td class="num">{{ a.open }}</td>
+      <td class="num">{% if a.custom %}<span class="pill fail">{{ a.custom }}</span>{% else %}0{% endif %}</td>
+      <td>{% with p = a %}{% include "_status.html" %}{% endwith %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p class="sub">An account's status is that of its least advanced plan. Open questions are items to settle with the
+  client before coding starts.</p>
+{% endblock %}

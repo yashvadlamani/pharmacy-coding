@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Drugs · {{ meta.plan_name or meta.plan_id }}{% endblock %}
+{% macro flags(row) %}{% if row.pa or row.st or row.ql %}<span class="pill warn">{{ restrictions(row) }}</span>{% else %}<span class="sub">none</span>{% endif %}{% endmacro %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('index') }}">Accounts</a> /
+  {% if account %}<a href="{{ url_for('account', account_id=account.account_id) }}">{{ account.name }}</a> /{% endif %}
+  <a href="{{ url_for('plan', plan_id=meta.plan_id) }}">{{ meta.plan_id }}</a> / drugs</p>
+<h1>Drug lookup: {{ meta.plan_name or meta.plan_id }}</h1>
+<p class="lead">Formulary {{ meta.formulary_id }} from {{ meta.issuer }}: {{ "{:,}".format(drug_count) }} drugs across
+  {% for label, tier in tiers.items() %}{{ tier.display }}{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+
+{% for warning in warnings %}<p class="note">Formulary data warning: {{ warning }}</p>{% endfor %}
+
+<form method="get" class="decide" style="max-width: 640px">
+  <input name="q" value="{{ query }}" placeholder="Drug name, for example atorvastatin or Eliquis" autofocus>
+  <button class="primary" type="submit">Search</button>
+</form>
+
+{% if query %}
+<h2>{{ total }} match{{ '' if total == 1 else 'es' }} for "{{ query }}"{% if total > results|length %}, showing {{ results|length }}{% endif %}</h2>
+<section>
+<table class="grid">
+  <thead><tr><th>Drug</th><th>Tier</th><th>Class</th><th>Restrictions</th><th>RxNorm id</th></tr></thead>
+  <tbody>
+    {% for row in results %}
+    <tr><td>{{ row.name }}</td><td>{{ row.tier }}</td><td>{{ row.class_label }}</td><td>{{ flags(row) }}</td><td>{{ row.rxcui }}</td></tr>
+    {% else %}
+    <tr><td colspan="5">Not on this formulary under that name. A claim for a drug that is not listed rejects as not covered.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</section>
+{% endif %}
+
+<h2>The {{ common|length }} most dispensed drugs</h2>
+<p class="sub">Ranked by Medicare Part D claims. Each drug is matched on all its strengths and forms; the row shows
+  its lowest tier on this formulary.</p>
+<section>
+<table class="grid">
+  <thead><tr><th>Drug</th><th>Tier</th><th>Class</th><th>Restrictions</th></tr></thead>
+  <tbody>
+    {% for drug in common %}
+    <tr>
+      <td>{{ drug.name }}</td>
+      {% if drug.status %}
+      <td>{{ drug.status.tier }}</td><td>{{ drug.status.class_label }}</td><td>{{ flags(drug.status) }}</td>
+      {% else %}
+      <td colspan="3"><span class="pill fail">Not on the formulary</span></td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</section>
+<p class="sub">Drug-level data comes from the machine-readable formulary file the insurer publishes. Tier classes
+  (generic, preferred brand and so on) are inferred from tier names and numbers.</p>
+{% endblock %}
