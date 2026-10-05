@@ -1,0 +1,5 @@
+plan_id,field,client_value,copay,coinsurance_pct,amount
+38166WI0140001,generic_retail,$15 copay,15,,
+38166WI0140001,preferred_brand_retail,$40 copay,40,,
+32225MT0070004,generic_retail,$5 copay,5,,
+32225MT0070004,overall_deductible_individual,"$2,000",,,2000

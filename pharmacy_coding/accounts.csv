@@ -1,0 +1,26 @@
+account_id,account_name,state,employees,sales_rep,stage,effective_date,plan_id,role
+A-2001,Example Manufacturing Co.,AL,120,Rep A,Renewal,2027-01-01,46944AL0280001,Current plan
+A-2001,Example Manufacturing Co.,AL,120,Rep A,Renewal,2027-01-01,46944AL0340001,Proposed option
+A-2001,Example Manufacturing Co.,AL,120,Rep A,Renewal,2027-01-01,46944AL0380001,Proposed option
+A-2002,Sample Logistics LLC,MT,64,Rep B,Prospect,2027-01-01,57601NH0350005,Current plan
+A-2002,Sample Logistics LLC,MT,64,Rep B,Prospect,2027-01-01,32225MT0140001,Proposed option
+A-2002,Sample Logistics LLC,MT,64,Rep B,Prospect,2027-01-01,32225MT0140002,Proposed option
+A-2003,Demo Dental Group,WI,38,Rep A,Sold,2026-12-01,38166WI0140001,Sold plan
+A-2003,Demo Dental Group,WI,38,Rep A,Sold,2026-12-01,38166WI0140004,Sold plan
+A-2004,Placeholder Foods Inc.,MT,85,Rep C,Sold,2026-12-01,32225MT0070004,Sold plan
+A-2004,Placeholder Foods Inc.,MT,85,Rep C,Sold,2026-12-01,32225MT0070006,Sold plan
+A-2005,Test Engineering Partners,WI,210,Rep B,Prospect,2027-04-01,46944AL0430001,Current plan
+A-2005,Test Engineering Partners,WI,210,Rep B,Prospect,2027-04-01,38166WI0140011,Proposed option
+A-2005,Test Engineering Partners,WI,210,Rep B,Prospect,2027-04-01,38166WI0140033,Proposed option
+A-2005,Test Engineering Partners,WI,210,Rep B,Prospect,2027-04-01,38166WI0140037,Proposed option
+A-2006,Fictional Credit Union,NH,95,Rep C,Renewal,2027-01-01,57601NH0350016,Current plan
+A-2006,Fictional Credit Union,NH,95,Rep C,Renewal,2027-01-01,96751NH0160016,Proposed option
+A-2006,Fictional Credit Union,NH,95,Rep C,Renewal,2027-01-01,96751NH0160037,Proposed option
+A-2007,Mock Hospitality Group,MT,150,Rep A,Sold,2027-01-01,32225MT0140003,Sold plan
+A-2007,Mock Hospitality Group,MT,150,Rep A,Sold,2027-01-01,32225MT0160001,Sold plan
+A-2007,Mock Hospitality Group,MT,150,Rep A,Sold,2027-01-01,32225MT0160002,Sold plan
+A-2007,Mock Hospitality Group,MT,150,Rep A,Sold,2027-01-01,32225MT0160006,Sold plan
+A-2008,Specimen Software Co.,WI,47,Rep B,Prospect,2027-07-01,38166WI0140040,Current plan
+A-2008,Specimen Software Co.,WI,47,Rep B,Prospect,2027-07-01,38166WI0140044,Proposed option
+A-2008,Specimen Software Co.,WI,47,Rep B,Prospect,2027-07-01,38166WI0150001,Proposed option
+A-2008,Specimen Software Co.,WI,47,Rep B,Prospect,2027-07-01,38166WI0150044,Proposed option

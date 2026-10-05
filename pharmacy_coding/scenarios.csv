@@ -1,0 +1,9 @@
+id,label,term,single_ingredient,channel,quantity,days,nadac_description,fallback_unit_price
+generic,"Atorvastatin 20 mg, 30 tablets",atorvastatin,yes,retail,30,30,ATORVASTATIN 20 MG TABLET,0.05
+generic-mail,"Atorvastatin 20 mg, 90 tablets by mail order",atorvastatin,yes,mail,90,90,ATORVASTATIN 20 MG TABLET,0.05
+thyroid,"Levothyroxine 50 mcg, 30 tablets",levothyroxine,yes,retail,30,30,LEVOTHYROXINE 50 MCG TABLET,0.12
+inhaler,"Albuterol HFA inhaler, one 8.5 g inhaler",albuterol,yes,retail,8.5,30,ALBUTEROL HFA 90 MCG INHALER,3.00
+anticoagulant,"Eliquis 5 mg, 60 tablets",Eliquis,no,retail,60,30,ELIQUIS 5 MG TABLET,9.50
+diabetes,"Jardiance 25 mg, 30 tablets",Jardiance,no,retail,30,30,JARDIANCE 25 MG TABLET,19.50
+glp1,"Ozempic, one pen (3 mL)",Ozempic,no,retail,3,28,OZEMPIC%,310.00
+specialty,"Enbrel 50 mg, four SureClick pens",Enbrel,no,retail,3.92,28,ENBREL 50 MG/ML SURECLICK,2083.00

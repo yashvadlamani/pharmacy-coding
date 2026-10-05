@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Coding handoff · {{ meta.plan_name or meta.plan_id }}{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('index') }}">Accounts</a> /
+  {% if account %}<a href="{{ url_for('account', account_id=account.account_id) }}">{{ account.name }}</a> /{% endif %}
+  <a href="{{ url_for('plan', plan_id=meta.plan_id) }}">{{ meta.plan_id }}</a> / coding handoff</p>
+<h1>Coding handoff: {{ meta.plan_name or meta.plan_id }} {% with p = {'status': status} %}{% include "_status.html" %}{% endwith %}</h1>
+<p class="lead">What the coding team receives once the client has confirmed: every value with its proposed platform
+  code and source, the client's answers, and test claims with expected results.
+  <a href="{{ url_for('handoff_json', plan_id=meta.plan_id) }}">Download as JSON</a></p>
+
+{% if error == 'name' %}<p class="alert">Enter your name at the top of the page before recording anything.</p>{% endif %}
+{% if error == 'unconfirmed' %}<p class="alert">The client has not confirmed this plan yet, so it cannot be approved or returned.</p>{% endif %}
+
+<div class="summary">
+  <div class="card wide">
+    {% set client = signoffs.get('client') %}{% set coder = signoffs.get('coder') %}
+    {% if client and client.action == 'confirm' %}
+    <div>Client confirmation recorded by {{ client.who }} on {{ client.timestamp[:10] }}.</div>
+    {% if coder %}<div>Coder decision: <strong>{{ coder.action }}</strong> by {{ coder.who }} on {{ coder.timestamp[:10] }}{% if coder.note %} · {{ coder.note }}{% endif %}</div>{% endif %}
+    <form method="post" action="{{ url_for('signoff', plan_id=meta.plan_id) }}" class="decide">
+      <input type="hidden" name="kind" value="coder">
+      <input name="note" placeholder="Note for the rep (optional)" maxlength="500">
+      <button class="primary" name="action" value="approve">Approve for load</button>
+      <button name="action" value="return">Return to sales</button>
+    </form>
+    {% else %}
+    <div class="sub">Draft. This package is released to coding when the rep records the client's confirmation on the
+      <a href="{{ url_for('plan', plan_id=meta.plan_id) }}">plan summary</a>.</div>
+    {% endif %}
+  </div>
+  <div class="card"><div class="sub">Unanswered questions</div><div class="big {{ 'bad' if package.unanswered_questions }}">{{ package.unanswered_questions|length }}</div></div>
+</div>
+
+{% for warning in validated.formulary_warnings %}<p class="note">Formulary data warning: {{ warning }}</p>{% endfor %}
+
+<h2>Plan parameters</h2>
+<section>
+<table class="grid">
+  <thead><tr><th>Parameter</th><th>Value</th><th>Proposed code</th><th>Fit</th><th>Source</th></tr></thead>
+  <tbody>
+    {% for f in package.fields %}
+    <tr>
+      <td>{{ f.label }}</td><td><strong>{{ f.value }}</strong></td>
+      <td>{% if f.code %}<code>{{ f.code }}</code>{% else %}<span class="sub">none</span>{% endif %}</td>
+      <td>{% with fit = f.fit %}{% include "_fit.html" %}{% endwith %}<div class="sub">{{ f.fit_reason }}</div></td>
+      <td>{% if f.source_quote %}<a href="{{ url_for('plan', plan_id=meta.plan_id, field=f.field) }}#{{ f.field }}">page {{ f.source_page }}</a>
+        <div class="sub">{{ f.source_quote }}</div>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    {% for f in package.plan_wide %}
+    <tr>
+      <td>Plan-wide</td><td><strong>{{ f.value }}</strong></td><td><code>{{ f.code }}</code></td>
+      <td>{% with fit = f.fit %}{% include "_fit.html" %}{% endwith %}<div class="sub">{{ f.fit_reason }}</div></td><td></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</section>
+
+<h2>Client answers</h2>
+<table class="grid">
+  <tbody>
+    {% for a in package.client_answers %}
+    <tr><td style="width: 55%">{{ a.question }}</td><td><strong>{{ a.answer }}</strong><div class="sub">{{ a.recorded_by }}, {{ a.recorded[:10] }}</div></td></tr>
+    {% endfor %}
+    {% for q in package.unanswered_questions %}
+    <tr><td style="width: 55%">{{ q }}</td><td><span class="pill warn">Not answered</span></td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Test claims</h2>
+<p class="sub">Expected results for the coder to check in the platform's test region. Drug prices are public average
+  acquisition costs standing in for contracted prices.</p>
+<section>
+<table class="grid">
+  <thead><tr><th>Scenario</th><th>Tier</th><th class="num">Drug price</th><th class="num">Member pays, first fill</th>
+    <th class="num">Member pays, after deductible</th><th>Expected reject or edit</th></tr></thead>
+  <tbody>
+    {% for c in package.test_claims %}
+    <tr>
+      <td>{{ c.scenario }}<div class="sub">{{ c.channel }}</div></td>
+      <td>{{ c.tier or 'Not on formulary' }}</td>
+      <td class="num">{{ "${:,.2f}".format(c.drug_price) }}</td>
+      <td class="num">{% if c.expected_member_pay_first_fill is none %}to be confirmed{% else %}{{ "${:,.2f}".format(c.expected_member_pay_first_fill) }}{% endif %}</td>
+      <td class="num">{% if c.expected_member_pay_after_deductible is none %}to be confirmed{% else %}{{ "${:,.2f}".format(c.expected_member_pay_after_deductible) }}{% endif %}</td>
+      <td>{% if c.expected_reject %}<span class="pill fail">{{ c.expected_reject }}</span>{% endif %}
+        {% for note in c.notes %}<div class="sub">{{ note }}</div>{% endfor %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</section>
+<p class="sub">Codes are placeholders built from the field and value. In production they come from the firm's code
+  library, and nothing loads to the adjudication platform without a coder's approval.</p>
+{% endblock %}

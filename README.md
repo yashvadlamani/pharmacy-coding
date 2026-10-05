@@ -36,7 +36,24 @@ Targets for the production release:
 
 ## Status
 
-Planning. No code has been written yet.
+A rough first draft of the prototype runs end to end on 25 public small-group exchange plans grouped into 8 fictional accounts: ingest, AI extraction, fit check, validation, the sales workspace, and a coding handoff package. Plan-level extraction scores 94.9% against the published values. See [Pipeline](docs/pipeline.md) to run it and for what is not built yet.
+
+**Live workspace:** <https://pharmcoding-workspace-f946de69.azurewebsites.net> (password protected)
+
+Known gaps in this draft: no Medicare Part D plans, drug-level data is taken from published formulary files rather than extracted from documents, no year-over-year comparison, and the standard catalog, fit rules, and codes are placeholders.
+
+## Services
+
+| Service | Used for |
+| --- | --- |
+| Azure Blob Storage | Public plan documents, formulary files, answer key, and pipeline outputs |
+| Azure Document Intelligence | Reading every plan document, digital or scanned (step 1) |
+| Azure OpenAI (`gpt-5-mini`) | Plan design extraction (step 2) |
+| Azure Table Storage | Client answers, client and coder sign-offs, audit trail (steps 5 and 6) |
+| Azure App Service | Hosting the Flask sales workspace (steps 5 and 6) |
+| CMS Public Use Files, insurer machine-readable files, NLM RxNav, Medicaid NADAC | Public source documents, published values, formularies, drug identities, prices |
+
+The fit check, validation, member cost examples, and scoring run locally with no external service. Details are in [Pipeline](docs/pipeline.md#services-used).
 
 ## Documentation
 
@@ -45,3 +62,6 @@ Planning. No code has been written yet.
 | [Pharmacy coding process](docs/pharmacy-coding-process.md) | The account lifecycle and where sales fits, what sales must capture, standard versus custom designs, and the full coding reference: source documents, what gets coded, code sets, claim adjudication, test claims, maintenance, common errors |
 | [Architecture](docs/architecture.md) | The account workspace, fit ratings, the six-stage pipeline, member cost simulator, and learning loop |
 | [Implementation plan](docs/implementation-plan.md) | Business case, users and use cases, 4-week prototype, 8-week production build, compliance, testing, success metrics, risks, rollout, approvals, open decisions |
+| [Pipeline](docs/pipeline.md) | How the first draft works step by step, the Azure and public services it uses, how to run it, results, and what is not built yet |
+| [Accuracy report](docs/accuracy-report.md) | Field-by-field extraction accuracy on the 25 prototype plans |
+| [Data sources](docs/data-sources.md) | Public data used by the prototype, where it is stored, and its limits |

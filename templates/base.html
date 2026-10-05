@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Pharmacy plan workspace{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="{{ url_for('index') }}">Pharmacy plan workspace</a>
+    <span class="tag">Prototype · public plan data · fictional accounts · placeholder catalog and codes</span>
+    {% if session.get('signed_in') %}
+    <form class="reviewer" method="post" action="{{ url_for('set_reviewer') }}">
+      <input type="hidden" name="next" value="{{ request.full_path }}">
+      <label for="name">Your name</label>
+      <input id="name" name="name" value="{{ reviewer }}" placeholder="Your name" required maxlength="60">
+      <button type="submit">Save</button>
+    </form>
+    <form method="post" action="{{ url_for('logout') }}"><button type="submit">Sign out</button></form>
+    {% endif %}
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

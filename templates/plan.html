@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.plan_name or meta.plan_id }} · Pharmacy plan workspace{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('index') }}">Accounts</a> /
+  {% if account %}<a href="{{ url_for('account', account_id=account.account_id) }}">{{ account.name }}</a> /{% endif %}
+  {{ meta.plan_id }}</p>
+<h1>{{ meta.plan_name or meta.plan_id }} {% with p = {'status': status} %}{% include "_status.html" %}{% endwith %}</h1>
+<p class="lead">{% if account %}{{ role }} for {{ account.name }} · effective {{ account.effective_date }} · {% endif %}{{ meta.issuer }}{% if meta.metal %} · {{ meta.metal }}{% endif %} · formulary {{ meta.formulary_id }}</p>
+<p><a href="{{ url_for('drugs', plan_id=meta.plan_id) }}">Drug lookup</a> ·
+  <a href="{{ url_for('handoff', plan_id=meta.plan_id) }}">Coding handoff</a></p>
+
+{% if error == 'name' %}<p class="alert">Enter your name at the top of the page before recording anything.</p>{% endif %}
+{% if error == 'blocking' %}<p class="alert">This plan cannot be confirmed until every blocking question has an answer.</p>{% endif %}
+
+{% for warning in validated.formulary_warnings %}<p class="note">Formulary data warning: {{ warning }}</p>{% endfor %}
+
+<div class="summary">
+  <div class="card"><div class="sub">Open questions</div><div class="big {{ 'bad' if blocking else '' }}">{{ open|length }}</div>
+    <div class="sub">{{ blocking|length }} blocking</div></div>
+  {% for rating, count in validated.summary.fit.items() if count %}
+  <div class="card"><div class="sub">{{ rating }}</div><div class="big">{{ count }}</div></div>
+  {% endfor %}
+  <div class="card wide">
+    {% set client = signoffs.get('client') %}
+    {% if client and client.action == 'confirm' %}
+    <div>Confirmed with the client by {{ client.who }} on {{ client.timestamp[:10] }}.</div>
+    <form method="post" action="{{ url_for('signoff', plan_id=meta.plan_id) }}" class="plan-actions">
+      <input type="hidden" name="kind" value="client"><button name="action" value="reopen">Reopen</button>
+    </form>
+    {% else %}
+    <div class="sub">Confirm once the client has agreed this summary. Blocking questions must be answered first.</div>
+    <form method="post" action="{{ url_for('signoff', plan_id=meta.plan_id) }}" class="plan-actions">
+      <input type="hidden" name="kind" value="client">
+      <button class="primary" name="action" value="confirm" {{ 'disabled' if blocking }}>Client has confirmed</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="split">
+  <div>
+    <div class="pane">
+      <h2>Plan summary</h2>
+      <p class="sub">Drafted from the plan document. Select "source" on any line to see where it came from.</p>
+      {% for heading, lines in sections %}
+      <h3>{{ heading }}</h3>
+      {% for line in lines %}
+      <div class="field {{ 'flag' if line.reasons }} {{ 'sel' if line.name == selected }}" id="{{ line.name }}">
+        <div class="row">
+          <div><div class="fname">{{ line.label }}</div><div class="value">{{ line.value }}</div></div>
+          <div class="meta">
+            {% with fit = line.fit %}{% include "_fit.html" %}{% endwith %}
+            {% if line.page and line.value != 'Not stated' %}
+            <a href="{{ url_for('plan', plan_id=meta.plan_id, field=line.name) }}#{{ line.name }}">source, page {{ line.page }}</a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="sub">{{ line.fit_reason }}</div>
+        {% if line.reasons %}<ul class="reasons">{% for reason in line.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>{% endif %}
+        {% if line.name == selected and line.quote %}<blockquote>{{ line.quote }}</blockquote>
+        {% if line.note %}<div class="sub">Reader's note: {{ line.note }}</div>{% endif %}{% endif %}
+      </div>
+      {% endfor %}
+      {% endfor %}
+      <h3>Plan-wide items</h3>
+      {% for item in validated.plan_wide %}
+      <div class="field">
+        <div class="row"><div class="value">{{ item.value }}</div>
+          <div class="meta">{% with fit = item.fit %}{% include "_fit.html" %}{% endwith %}</div></div>
+        <div class="sub">{{ item.fit_reason }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="pane" id="questions" style="margin-top: 16px">
+      <h2>Questions for the client</h2>
+      <p class="sub">Generated from conflicts between documents, items the documents do not state, values read with
+        low confidence, and designs that are custom or unsupported. Record the client's answer against each.</p>
+      {% for q in validated.questions %}
+      <div class="field {{ 'flag' if q.blocking and not q.answer }}">
+        <div class="row">
+          <div>{{ q.text }}</div>
+          <div class="meta"><span class="pill {{ 'fail' if q.blocking else 'muted' }}">{{ {'conflict': 'Conflict', 'missing': 'Not in documents', 'confirm': 'Please confirm', 'fit': 'Fit', 'standing': 'Always asked'}[q.kind] }}</span></div>
+        </div>
+        {% if q.answer %}
+        <div class="decision"><span class="pill pass">Answered</span> {{ q.answer.answer }}
+          <span class="sub">· {{ q.answer.who }}, {{ q.answer.timestamp[:10] }}</span></div>
+        {% endif %}
+        <details {{ 'open' if q.blocking and not q.answer }}>
+          <summary>{{ 'Change the answer' if q.answer else 'Record the answer' }}</summary>
+          <form method="post" action="{{ url_for('answer', plan_id=meta.plan_id) }}" class="decide">
+            <input type="hidden" name="question" value="{{ q.id }}">
+            <input name="answer" placeholder="What the client said" required maxlength="500">
+            <button type="submit">Save</button>
+          </form>
+        </details>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="pane" style="margin-top: 16px">
+      <h2>What a member would pay</h2>
+      <p class="sub">Each example uses the drug's tier on this plan's formulary and a public average acquisition
+        price (NADAC) in place of a contracted price, so the amounts are illustrative.</p>
+      <section>
+      <table class="grid">
+        <thead><tr><th>Prescription</th><th>Tier</th><th class="num">Drug price</th><th class="num">First fill of the year</th>
+          <th class="num">After deductible is met</th></tr></thead>
+        <tbody>
+          {% for c in validated.member_costs %}
+          <tr>
+            <td>{{ c.label }}<div class="sub">{{ c.explanation }}</div>
+              {% for note in c.notes %}<div class="sub">{{ note }}</div>{% endfor %}</td>
+            <td>{{ c.tier or 'Not covered' }}</td>
+            <td class="num">{{ "${:,.2f}".format(c.allowed) }}</td>
+            <td class="num">{% if c.first_fill is none %}to be confirmed{% else %}{{ "${:,.2f}".format(c.first_fill) }}{% endif %}</td>
+            <td class="num">{% if c.after_deductible is none %}to be confirmed{% else %}{{ "${:,.2f}".format(c.after_deductible) }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </section>
+    </div>
+
+    {% if audit %}
+    <div class="pane" style="margin-top: 16px">
+      <h2>History</h2>
+      <table class="grid">
+        <tbody>
+          {% for row in audit %}
+          <tr><td>{{ row.timestamp[:16]|replace('T', ' ') }}</td><td>{{ row.who }}</td><td>{{ row.action }} · {{ row.target }}</td><td>{{ row.detail }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="pane source">
+    <h2>Source document</h2>
+    <div class="pages">
+      {% for n in range(1, page_count + 1) %}
+      <a class="{{ 'on' if n == page_number }}" href="{{ url_for('plan', plan_id=meta.plan_id, field=selected, page=n) }}">{{ n }}</a>
+      {% endfor %}
+    </div>
+    <pre class="doc">{{ source }}</pre>
+  </div>
+</div>
+<p class="sub">Internal working summary drafted from the plan's Summary of Benefits and Coverage. It is not a quote
+  or a plan document; the issued plan documents govern.</p>
+{% endblock %}

@@ -1,0 +1,7 @@
+# downloaded documents live in Azure Blob Storage, not in git
+data/
+__pycache__/
+.pytest_cache/
+.env
+output/
+.claude/
