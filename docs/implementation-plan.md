@@ -1,20 +1,21 @@
 # Implementation Plan: Prototype to Production
 
-AI-assisted pharmacy benefit coding for PBM and health-plan benefit operations: an AI pipeline reads plan documents and formularies, extracts cost-sharing rules and drug-level attributes with source citations, maps them to adjudication-platform codes, validates them with test claims, and hands a coder a ready-to-approve plan.
+An AI-assisted account workspace that helps sales and account management teams work with accounts and their pharmacy plans. It reads an account's plan documents and formularies, extracts the plan design with source citations, checks it against what the adjudication platform can administer, shows what is undecided and what changes for members, and hands the coding team a ready-to-code package once the client confirms.
 
-**AI drafts and humans decide.** Nothing loads to the adjudication platform without passing automated checks and a coder's approval.
+**AI drafts, sales confirms, coders approve.** Nothing goes to a client without a rep's review, and nothing loads to the adjudication platform without a coder's approval.
 
 | Phase | Duration | Outcome |
 | --- | --- | --- |
 | Phase 1: Prototype | 4 weeks | Live demo and scorecard; go/no-go decision |
-| Phase 2: Production build | 8 weeks after approval | Go-live on the first line of business |
+| Phase 2: Production build | 8 weeks after approval | Go-live with a pilot sales team on one line of business |
 | Total | About 3 months | Kickoff to production launch |
 
-The six-stage pipeline is described in [architecture.md](architecture.md). The manual process it assists is described in [pharmacy-coding-process.md](pharmacy-coding-process.md).
+The pipeline and workspace are described in [architecture.md](architecture.md). The coding process the product feeds is described in [pharmacy-coding-process.md](pharmacy-coding-process.md).
 
 ## Contents
 
 - [Business case](#business-case)
+- [Users and use cases](#users-and-use-cases)
 - [Delivery plan](#delivery-plan)
 - [Phase 1: Prototype (weeks 1 to 4)](#phase-1-prototype-weeks-1-to-4)
 - [Phase 2: Production build (8 weeks)](#phase-2-production-build-8-weeks)
@@ -29,60 +30,83 @@ The six-stage pipeline is described in [architecture.md](architecture.md). The m
 
 ## Business case
 
-Pharmacy claims adjudicate in seconds at the counter, so a coding error reaches members on the first day of the plan year. Manual coding is slow, concentrated in the fourth quarter, and dependent on a small number of experienced coders.
+Most pharmacy coding errors start before coding does: a plan design is sold with gaps, contradictions, or features the platform cannot administer, and the problem surfaces weeks later during implementation or on day one at the pharmacy counter. Sales teams have no quick way to read a prospect's current plan, check a requested design against what can be built, or see what a change does to members.
 
 | Pain point | Impact today | What the product changes |
 | --- | --- | --- |
-| Manual re-keying of intake forms and plan documents | Weeks per group, compressed renewal season | AI drafts every field; coder reviews |
-| Conflicting source documents | Rework and late client questions | Conflicts listed automatically at intake |
-| Fourth-quarter backlog | Overtime, contractors, rushed testing | Same coders handle more groups |
-| Coding errors | Wrong copays and rejects at the counter, claim reprocessing, performance-guarantee penalties | Automated reconciliation and test claims before load |
-| Hand-written test claims | Thin test coverage under time pressure | Test scenarios and expected results generated from the extracted benefit |
-| Sales promises not reflected in the system | Post-sale disputes | Mismatches flagged before go-live |
+| Reading a prospect's plan documents by hand | Days to understand an incumbent design; details missed | Structured plan summary in minutes, every value cited |
+| Promising features the platform cannot administer | Custom builds, delays, post-sale disputes | Fit check before the proposal goes out |
+| Incomplete or contradictory intake | Repeated clarification rounds during implementation | Open questions listed while the rep is still with the client |
+| No view of member impact | Disruption found after go-live | Drug disruption and member cost examples at proposal stage |
+| Renewal changes tracked in email | Changes missed or applied to the wrong year | Year-over-year comparison listing only what changed |
+| Re-keying from sales documents into coding | Slow handoff, transcription errors | Confirmed plan flows to coding as a structured package |
+| No visibility after the sale | Reps chase implementation for status | Status shown on the account |
 
 ### Value model
 
 To be filled in with baseline numbers gathered in week 1 of the prototype:
 
-- **Hours saved** = groups per year × hours per group today × share of work automated
-- **Error savings** = coding-related claim reprocessing events per year × cost per event × reduction
-- **Penalty avoidance** = performance-guarantee amounts at risk for coding accuracy and timeliness
-- **Capacity** = additional groups implemented in the renewal season without added staff
+- **Sales time saved** = accounts per year × hours per account spent reading documents and chasing clarifications × share automated
+- **Faster implementation** = days from signed sale to complete intake today × reduction
+- **Fewer disputes and rework** = post-sale disputes and custom builds per year × cost per event × reduction
+- **Error savings** = coding-related claim reprocessing events traced to intake × cost per event × reduction
+- **Win rate and retention** = effect of faster, more specific proposals and cleaner renewals, tracked but not assumed
 
-The build is lean, so the main costs are LLM usage, hosting, a drug-compendium license in production, and coder review time for validation.
+The build is lean, so the main costs are LLM usage, hosting, CRM integration, a drug-compendium license in production, and time from sales and coding staff for validation.
+
+## Users and use cases
+
+| User | What they do in the product |
+| --- | --- |
+| Sales executive (new business) | Upload a prospect's current plan; get a summary, fit report, and comparison against proposed options |
+| Account manager (existing accounts) | Keep each account's plans current; run renewal comparisons; answer client benefit questions |
+| Implementation manager | Close open questions, obtain client confirmation, trigger the handoff |
+| Benefit coder | Receive the coding package, approve or correct it, load it |
+| Sales leadership | See pipeline readiness, open items by account, and custom requests awaiting approval |
+
+Use cases, in priority order for the first release:
+
+1. **Understand a plan.** Turn an account's documents into a cited, plain-language plan summary.
+2. **Check fit.** Rate every requested feature as standard, configurable, custom, or not supported.
+3. **Close gaps.** Generate the list of client questions from missing decisions and document conflicts.
+4. **Compare.** Current against proposed, option against option, this year against next.
+5. **Show member impact.** Drug disruption and member cost examples.
+6. **Confirm and hand off.** Client-confirmed summary becomes a coding package; status returns to the account.
 
 ## Delivery plan
 
 | Phase | When | Focus |
 | --- | --- | --- |
-| Prototype, week 1 | Weeks 1 to 4 | Data and setup |
+| Prototype, week 1 | Weeks 1 to 4 | Data, sample accounts, and setup |
 | Prototype, week 2 | | Plan-level and drug-level extraction |
-| Prototype, week 3 | | Mapping, test-claim simulator, review screen |
+| Prototype, week 3 | | Fit check, comparison, account workspace |
 | Prototype, week 4 | | Tune and live demo |
 | **Approval gate** | End of week 4 | Demo meets criteria |
-| Sprint 1 | Build weeks 1-2 | Secure environment, CI/CD, client code library, drug compendium |
-| Sprint 2 | Build weeks 3-4 | Platform integration, full benefit set, real test claims |
-| Sprint 3 | Build weeks 5-6 | Review queue, audit trail, learning loop, intake form |
-| Sprint 4 | Build weeks 7-8 | Regression, sign-off, UAT, parallel run, go-live |
-| **Go-live** | | First line of business, then hypercare |
+| Sprint 1 | Build weeks 1-2 | Secure environment, CRM connection, standard catalog and code library |
+| Sprint 2 | Build weeks 3-4 | Full benefit set, fit rules, comparison and disruption, client summary |
+| Sprint 3 | Build weeks 5-6 | Client confirmation, handoff to coding, status return, learning loop |
+| Sprint 4 | Build weeks 7-8 | Regression, sign-off, UAT, pilot, go-live |
+| **Go-live** | | Pilot sales team on one line of business, then hypercare |
 
-The approval gate is the only decision point. If the demo misses its criteria, the scorecard shows which fields need work before the build is reconsidered.
+The approval gate is the only decision point. If the demo misses its criteria, the scorecard shows what needs work before the build is reconsidered.
 
 ## Phase 1: Prototype (weeks 1 to 4)
 
-The prototype shows AI turning 25 real, publicly available pharmacy plans into proposed benefit codes, with citations, a review screen, and simulated test claims. It ends in a go/no-go demo.
+The prototype shows a rep working eight sample accounts built from 25 real, publicly available pharmacy plans: plan summaries with citations, fit reports, open questions, comparisons, member impact, and a coding handoff package. It ends in a go/no-go demo.
 
-No client documents or platform codes are available yet, so every prototype step runs on public sources. Client data replaces them in Phase 2 without changing the pipeline.
+No client documents, standard offering catalog, or platform codes are available yet, so every prototype step runs on public sources. Client data replaces them in Phase 2 without changing the pipeline.
 
 ### Scope
 
-- **25 plans** with public documents and published values to score against:
-  - 15 Medicare Part D plans (stand-alone and Medicare Advantage), which publish plan documents, formularies, and a detailed CMS data file
-  - 10 exchange plans, which publish an SBC and a machine-readable formulary
+- **8 sample accounts holding 25 plans**, each with public documents and published values to score against:
+  - 15 Medicare Part D plans (stand-alone and Medicare Advantage), including the same plans in two consecutive years for renewal comparison
+  - 10 exchange plans, each with an SBC and a machine-readable formulary
+  - Account names and contacts are fictional; the plans are real
 - **About 30 plan-level fields per plan:** pharmacy deductible and whether it is integrated with medical, tiers the deductible applies to, OOP maximum, number of tiers, cost share per tier for retail 30-day, retail 90-day, mail, and specialty, coinsurance minimums and maximums, days supply limits by channel, mail-order availability, specialty pharmacy rule
-- **Drug-level attributes** for a fixed sample of 200 commonly used drugs per formulary: tier, prior authorization, step therapy, quantity limit
-- Public plan documents only: no member PHI and no client data, so no BAA is needed until client documents are introduced
-- **Out of scope:** live platform integration, client code libraries, network pricing contracts, accumulator feeds with a medical carrier, Medicaid, compounds, coordination of benefits
+- **Drug-level attributes** for a fixed list of 200 commonly used drugs per formulary: tier, prior authorization, step therapy, quantity limit
+- **Workspace views:** account overview, plan summary, fit report, open questions, plan comparison, drug lookup and disruption, member cost examples, handoff package
+- Public plan documents only: no member PHI and no client or prospect data, so no BAA is needed until real documents are introduced
+- **Out of scope:** CRM integration, pricing and rebate terms, quotes and financial guarantees, claims-based disruption using member data, live platform load, Medicaid, compounds, coordination of benefits
 
 ### Public data sources
 
@@ -90,33 +114,35 @@ No client documents or platform codes are available yet, so every prototype step
 | --- | --- | --- |
 | 1. Ingest | Plan documents | Part D Summary of Benefits and Evidence of Coverage documents on plan websites; exchange SBC PDFs linked from the CMS Exchange Public Use Files |
 | 1. Ingest | Formulary documents | Formulary PDFs published by each Part D plan and exchange issuer |
-| 1. Ingest | Intake forms and riders | Not published: synthetic intake forms and riders written against a real plan, including seeded conflicts |
+| 1. Ingest | RFPs, intake forms, and riders | Not published: synthetic documents written against a real plan, with seeded gaps and conflicts |
 | 1. Ingest | Scanned documents | Real documents degraded into scan-like images |
 | 2. Extract | Verified plan-level values | CMS Part D formulary and pharmacy network files (beneficiary cost by tier, days supply, and pharmacy type); CMS Exchange Benefits and Cost Sharing Public Use File |
 | 2. Extract | Verified drug-level values | CMS Part D formulary file (tier, PA, ST, QL per drug by RxCUI); exchange issuers' machine-readable formulary files |
-| 3. Map | Drug identity | RxNorm from the National Library of Medicine; FDA NDC Directory |
-| 3. Map | Target code system | A placeholder code table modeled on common platform parameters; each client replaces it with its own |
-| 4. Validate | Reconciliation | Coded values compared with the source documents; mismatches seeded by altering one value in a copy |
-| 4. Validate | Drug prices for test claims | NADAC from Medicaid.gov, as a stand-in for contracted network pricing |
+| 3. Map and fit | Drug identity | RxNorm from the National Library of Medicine; FDA NDC Directory |
+| 3. Map and fit | Standard offerings and codes | A placeholder catalog of standard plan designs and a placeholder code table, both replaced by the firm's own in production |
+| 4. Validate | Commonly used drugs for disruption | CMS Medicare Part D Spending by Drug data, to pick the 200-drug list |
+| 4. Validate | Drug prices for member cost examples | NADAC from Medicaid.gov, as a stand-in for contracted network pricing |
 | 4. Validate | Regulatory checks | CMS-published Part D benefit parameters for the plan year; ACA preventive drug categories |
-| 5. Review | Reviewers and baseline time | Not public: internal reviewers time themselves coding a plan by hand, then with the tool |
+| 5. Review | Reviewers and baseline time | Not public: internal sales and coding reviewers time themselves doing the work by hand, then with the tool |
 
 Limits of public data, to state openly in the pitch:
 
-- Published values are filed plan designs, not a client's platform codes. The code table is a stand-in each client replaces.
-- Commercial self-funded plans, the most customized segment, publish nothing. Their variety is represented only by synthetic intake forms.
-- Medi-Span and First Databank identifiers are licensed, so the prototype uses RxNorm and NDC. Production needs the client's compendium.
-- NADAC approximates acquisition cost, not a contracted rate. Deductible-phase and coinsurance test results are illustrative.
-- Review-time and "would use it daily" results come from internal reviewers until client coders take part.
+- Published values are filed plan designs, not a client's request. Real sales documents (RFPs, emails, incumbent contracts) are messier and are represented only by synthetic examples.
+- The standard offering catalog and fit rules are placeholders. Fit ratings in the demo show the mechanism, not the firm's real limits.
+- Commercial self-funded plans, the most customized segment, publish nothing.
+- Disruption is shown against a fixed drug list. Real disruption analysis uses the account's own claims and belongs in production under a BAA.
+- NADAC approximates acquisition cost, not a contracted rate. Member cost examples are illustrative.
+- Review-time and "would use it" results come from internal reviewers until the pilot sales team takes part.
 - File layouts, plan-year parameters, and document links change yearly and must be confirmed in week 1.
 
 ### Prototype stack
 
 - Enterprise LLM with structured JSON output for extraction
-- Python service for parsing, OCR, extraction, drug normalization, and code mapping
-- Code library as a lookup table (field, value, platform code) filled with placeholder codes
-- Lightweight web review screen: source document beside proposed fields and codes
-- Rules-based test-claim simulator standing in for the adjudication platform, returning member cost or an NCPDP reject code
+- Python service for parsing, OCR, extraction, drug normalization, fit rating, and code mapping
+- Placeholder standard offering catalog and code table as lookup tables
+- Web account workspace: source document beside the plan summary, with fit, questions, comparison, and impact views
+- Rules-based member cost simulator, returning member cost or a reject reason
+- Exportable plan summary and coding handoff package
 
 Where practical, components are reused from the medical benefit coding prototype.
 
@@ -124,12 +150,14 @@ Where practical, components are reused from the medical benefit coding prototype
 
 | Week | Focus | Deliverable |
 | --- | --- | --- |
-| 1 | Data and setup | CMS files downloaded and layouts confirmed; 25 plans selected and their documents collected; golden dataset built from published values; 200-drug sample fixed; field list and placeholder code table agreed; manual baseline review time measured |
-| 2 | Extraction | Plan-level fields extracted with citations and confidence; formulary tables parsed and drugs normalized to RxNorm; first accuracy report against published values |
-| 3 | Mapping, checks, review screen | Fields mapped to placeholder codes; cross-document reconciliation working; test-claim simulator running 12 scenarios per plan; review screen usable |
-| 4 | Tune and demo | Misses fixed; synthetic intake-form, rider, and scanned-copy cases added; final scorecard; reviewers time their reviews; live demo |
+| 1 | Data, accounts, setup | CMS files downloaded and layouts confirmed; 25 plans selected and grouped into 8 sample accounts; golden dataset built from published values; 200-drug list fixed; field list, placeholder catalog, and fit rules agreed with a sales reviewer and a coding reviewer; baseline times measured |
+| 2 | Extraction | Plan-level fields extracted with citations and confidence; formulary tables parsed and drugs normalized to RxNorm; first accuracy report against published values; plan summary view |
+| 3 | Fit, comparison, workspace | Fit ratings and open-question generation working; plan and year-over-year comparison; drug disruption; member cost simulator running 12 scenarios per plan; account workspace usable |
+| 4 | Tune and demo | Misses fixed; synthetic RFP, intake-form, rider, and scanned-copy cases added; handoff package export; final scorecard; reviewers time their work; live demo |
 
-### Test-claim scenarios in the prototype
+### Member cost and test scenarios in the prototype
+
+Each scenario is shown to sales as a member cost example and written into the handoff package as a test claim.
 
 | # | Scenario | Expected result |
 | --- | --- | --- |
@@ -140,21 +168,24 @@ Where practical, components are reused from the medical benefit coding prototype
 | 5 | Specialty drug | Specialty cost share with 30-day limit |
 | 6 | Claim in the deductible phase | Member pays the drug price up to the deductible |
 | 7 | Claim after OOP maximum is met | $0 |
-| 8 | PA-required drug, no authorization | Reject 75 |
-| 9 | Quantity above the limit | Reject 76 |
-| 10 | Early refill | Reject 79 |
-| 11 | Drug not on the formulary | Reject 70 |
-| 12 | Days supply above the channel limit | Reject 76 |
+| 8 | PA-required drug, no authorization | Not paid: prior authorization required (reject 75) |
+| 9 | Quantity above the limit | Not paid: plan limit exceeded (reject 76) |
+| 10 | Early refill | Not paid: refill too soon (reject 79) |
+| 11 | Drug not on the formulary | Not paid: not covered (reject 70) |
+| 12 | Days supply above the channel limit | Not paid: plan limit exceeded (reject 76) |
 
 ### Demo script (20 minutes)
 
-1. Upload plan documents and a formulary the system has never seen, from a plan outside the 25-plan set.
-2. Plan-level fields populate, each with a confidence score and its highlighted source sentence.
-3. Look up three drugs; tier and PA, ST, and QL flags appear with the formulary line they came from.
-4. A seeded conflict between the intake form and the SBC is flagged, and low-confidence fields are highlighted.
-5. A coder edits one field and approves; the audit trail records the change.
-6. Test claims run: four pay with the expected member cost, and three reject with the expected codes.
-7. Close on the scorecard: accuracy by field, review time versus today, plans needing no edits.
+1. Open a sample account. The overview shows its plans, effective dates, and open items.
+2. Upload a prospect's current plan documents and formulary that the system has never seen, from outside the 25-plan set.
+3. The plan summary populates in plain language; click any value to see its highlighted source sentence.
+4. Open the fit report: most features are standard, one is custom, one is not supported and shows the nearest alternative.
+5. Open questions: a seeded conflict between the intake form and the SBC, and two decisions the documents never state, each phrased as a question for the client.
+6. Compare the current plan with a proposed option, then with next year's version; only the differences are listed.
+7. Look up three drugs and open the disruption view: which commonly used drugs change tier, gain an edit, or lose coverage.
+8. Show member cost examples for both options side by side.
+9. Mark the plan confirmed and export the handoff package; show the proposed codes and test claims the coder receives.
+10. Close on the scorecard: accuracy, gaps caught, time saved versus today.
 
 ### Approval criteria for Phase 2
 
@@ -162,26 +193,28 @@ Where practical, components are reused from the medical benefit coding prototype
 | --- | --- |
 | Plan-level field accuracy, Part D plans | 90%+ |
 | Plan-level field accuracy, exchange plans | 85%+ |
-| Drug-level tier accuracy on the 200-drug sample | 95%+ |
+| Drug-level tier accuracy on the 200-drug list | 95%+ |
 | Drug-level PA, ST, and QL flag accuracy | 90%+ |
 | Fields with a valid source citation | 100% |
-| Review time per standard plan | Under 20 minutes |
-| Seeded mismatches and conflicts caught | All |
-| Test claims matching expected result | 95%+ |
-| Coder verdict | Majority would use it daily |
+| Seeded conflicts and missing decisions caught | All |
+| Year-over-year changes correctly identified | 95%+ |
+| Fit ratings matching the coding reviewer's judgment | 90%+ |
+| Time for a rep to produce a reviewed plan summary | Under 20 minutes |
+| Sales verdict | Majority would use it on live accounts |
+| Coding verdict | Handoff package is usable without re-reading the source documents |
 
-Accuracy is scored against the published CMS and issuer values. Review time and coder verdict come from internal reviewers during the prototype and are re-measured with client coders once a client takes part.
+Accuracy is scored against the published CMS and issuer values. Time and verdicts come from internal reviewers during the prototype and are re-measured with the pilot sales team in production.
 
 ## Phase 2: Production build (8 weeks)
 
-Phase 2 turns the prototype into a secure, integrated product in four 2-week sprints, ending with go-live on the first line of business.
+Phase 2 turns the prototype into a secure, integrated product in four 2-week sprints, ending with go-live for a pilot sales team on one line of business.
 
 | Sprint | Weeks | Focus | Done when |
 | --- | --- | --- | --- |
-| 1 | 1-2 | Production foundations | Secure environment with SSO, encryption, logging, and CI/CD; prototype refactored into services; client code library and list IDs loaded; drug compendium connected and mapped to RxNorm |
-| 2 | 3-4 | Platform integration and full benefit set | Configuration loads to the platform test region by API or load file; test claims submitted to the test region and compared with expected results; accumulators, brand penalties, preventive lists, and channel rules covered; regulatory checks live for the launch line of business |
-| 3 | 5-6 | Reviewer workflow and learning loop | Work queue, approvals, peer-QA step, audit trail, and reporting dashboard; reviewer corrections captured to improve accuracy; standard digital intake form; renewal comparison against the prior-year configuration |
-| 4 | 7-8 | Hardening and launch | Regression suite on a 200-plan golden set; security and compliance sign-off; coder UAT and two-week parallel run; go-live and hypercare with first-claims monitoring |
+| 1 | 1-2 | Production foundations | Secure environment with SSO, encryption, logging, and CI/CD; accounts and ownership synced from the CRM; access limited to a rep's own accounts; standard offering catalog, code library, and list IDs loaded; drug compendium connected |
+| 2 | 3-4 | Full benefit set and sales views | All plan design features covered; fit rules written and signed off by coding and clinical teams; comparison and disruption on real formularies; client-ready plan summary export in the firm's template |
+| 3 | 5-6 | Confirmation, handoff, learning loop | Client confirmation recorded; coding package delivered to the coding team's intake queue; coder approval and corrections captured; implementation status returned to the account and CRM; renewal mode against the prior-year configuration |
+| 4 | 7-8 | Hardening and launch | Regression suite on a 200-plan golden set; security and compliance sign-off; UAT with sales and coding; pilot on live accounts; go-live and hypercare |
 
 ### Sprint detail
 
@@ -189,165 +222,189 @@ Phase 2 turns the prototype into a secure, integrated product in four 2-week spr
 
 - Stand up development, test, and production environments in the approved cloud
 - SSO, role-based access, encryption at rest and in transit, access logging
+- Connect the CRM: accounts, opportunities, owners, and effective dates
+- Restrict each rep to their own accounts; leadership sees roll-ups
 - Execute the BAA with the LLM provider; confirm no data is retained for training
-- Load the client's code library, formulary and drug-list IDs, and clinical program catalog
-- Connect the licensed drug compendium and build the crosswalk from RxNorm to its identifiers
-- Begin the client golden set: 50 already-coded plans with verified configuration
+- Load the standard offering catalog, the code library, formulary and drug-list IDs, and the clinical program catalog
+- Connect the licensed drug compendium and build the crosswalk from RxNorm
+- Begin the client golden set: 50 already-coded plans with their original sales documents
 
-**Sprint 2: Platform integration and full benefit set**
+**Sprint 2: Full benefit set and sales views**
 
-- Confirm the load method (API or load file) and build it against the test region
-- Submit generated test claims to the test region and capture results
 - Extend extraction to accumulator rules, medical integration, brand penalties, mandatory mail and specialty, preventive and HDHP lists, exclusions, and client-specific drug overrides
+- Replace placeholder fit rules with the firm's real rules; each rule has a named owner in coding or clinical
+- Approval step for custom requests before a rep can commit to them
+- Comparison of incumbent formulary against the firm's formularies
+- Client-ready summary and comparison exports in approved templates, labeled draft until confirmed
 - Regulatory checks for the launch line of business
 - Grow the golden set to 120 plans
 
-**Sprint 3: Reviewer workflow and learning loop**
+**Sprint 3: Confirmation, handoff, learning loop**
 
-- Work queue with assignment, status, and due dates tied to effective dates
-- Separate coder and peer-QA approvals, matching the existing control
-- Audit trail holding source, AI output, reviewer decision, and final code together
-- Corrections feed the golden set, prompts, and mapping rules
+- Client confirmation record: what was confirmed, by whom, when, and against which document versions
+- Coding package: confirmed fields, proposed codes, source citations, fit notes, and test claims with expected results
+- Delivery into the coding team's existing intake queue, with coder approval and peer QA unchanged
+- Coder corrections and client answers feed the golden set, prompts, and fit rules
+- Implementation status returned to the account workspace and the CRM
 - Renewal mode: compare new documents with the prior-year configuration and list only what changed
-- Standard intake form that removes free-text ambiguity at the source
 - Grow the golden set to 200 plans
 
 **Sprint 4: Hardening and launch**
 
 - Regression suite must pass on the 200-plan golden set before any release
-- Security, compliance, and model-governance sign-off
-- Coder training and UAT
-- Two-week parallel run: new groups coded both ways and compared
-- Go-live on the first line of business
-- Hypercare: first live claims for each launched group compared with expected results
+- Security, compliance, legal, and model-governance sign-off, including review of client-facing templates
+- Sales and coder training and UAT
+- Pilot: a small sales team uses it on live accounts alongside their current process for two weeks
+- Go-live for the pilot team on the first line of business
+- Hypercare: every handoff from the pilot compared with what the coder finally loaded
 
 ### Production-ready checklist
 
 - [ ] Runs in the firm's approved cloud with SSO and role-based access
+- [ ] Reps see only their own accounts; prospect documents handled under the applicable NDA
 - [ ] BAA in place with the LLM provider; no data retained for model training
 - [ ] Model and prompt versions pinned; changes go through regression tests
-- [ ] Every coded field stores source passage, confidence, reviewer, and timestamp
-- [ ] Reconciliation and test claims block bad loads
-- [ ] Coder and peer-QA approvals recorded separately
-- [ ] Drug compendium updates handled without manual rework
+- [ ] Every value stores source passage, confidence, reviewer, and timestamp
+- [ ] Client-facing outputs carry a draft label and disclaimer until confirmed, in legally approved templates
+- [ ] Custom and not-supported items cannot be committed without recorded approval
+- [ ] Fit rules have named owners and a change process
+- [ ] Handoff package accepted by the coding team; coder approval still required before load
 - [ ] Monitoring and alerts for errors, latency, and accuracy drift
-- [ ] Runbook, fallback to manual coding, and support process documented
-- [ ] Coders trained; two-week parallel run passed before cutover
+- [ ] Runbook, fallback to the manual process, and support path documented
+- [ ] Pilot completed with sales and coding sign-off
 
-> **Timing note:** Pharmacy coding peaks from October through December for January 1 effective dates. A kickoff in early October puts the approval gate in early November and go-live in early January, directly on the peak. Options are to launch on off-cycle groups (April 1 or July 1 effective dates) or to hold cutover until February. No plan should be cut over during its own renewal.
+> **Timing note:** A kickoff in early October puts the approval gate in early November and go-live in early January. That suits sales, since the tool arrives ahead of the selling season for the following January. It is hard on the coding team, whose peak runs October through December and whose time is needed in sprints 2 to 4 for fit rules and UAT. Either reserve named coder time before kickoff or shift the build to start in January.
 
 ## Compliance and security
 
-The prototype avoids member PHI entirely. The production build adds the controls needed to pass HIPAA and model-risk review before go-live.
+The prototype avoids member PHI and client data entirely. The production build adds the controls needed for client and prospect documents and for client-facing output.
 
 | Requirement | Prototype | Production |
 | --- | --- | --- |
-| HIPAA | Public plan documents only, no PHI or client data | Encryption, access logging, minimum necessary access; BAA before any client document is used |
-| ACA preventive drugs | $0 preventive tier checked where published | Missing preventive list blocks the load |
-| ACA cost-sharing limits | OOP maximum checked against the annual limit | Same, with pharmacy and medical combined |
-| HDHP rules | Not in scope | Deductible applies before cost share except for preventive drugs |
-| Medicare Part D | Extracted values checked against the year's CMS benefit parameters | Checks aligned with the client's CMS-approved bid and formulary |
-| Mental health parity (MHPAEA) | Not in scope | Cost-sharing and utilization-management comparison for the launch line of business |
+| HIPAA | Public plan documents only, no PHI | Encryption, access logging, minimum necessary access; BAA before any client document or claims data is used |
+| Prospect confidentiality | Not applicable | Prospect documents handled under NDA; access limited to the account team; retention rules for lost opportunities |
+| Client-facing statements | Outputs labeled illustrative | Approved templates and disclaimers; summaries are not quotes, contracts, or plan documents |
+| Pricing and guarantees | Out of scope | Out of scope for this release; no rebate, discount, or guarantee terms generated |
+| Commitments on custom items | Shown as a rating | Recorded approval required before a rep commits |
+| ACA preventive drugs and cost-sharing limits | Checked where published | Non-compliant designs flagged to the rep before proposal |
+| HDHP rules | Not in scope | Flag designs that would break HSA eligibility |
+| Medicare Part D | Extracted values checked against the year's CMS benefit parameters | Checks aligned with CMS rules for the launch line of business; outputs are for plan sponsors, not beneficiary marketing |
+| Mental health parity (MHPAEA) | Not in scope | Flag for compliance review where pharmacy cost sharing or edits may raise a parity question |
 | State law | Not in scope | Rules for situs states of the first line of business, such as insulin cost caps and copay accumulator restrictions |
-| NCPDP standards | Reject codes used in the simulator | Test claims in the platform's supported standard version |
-| AI controls | Citations and confidence per field | Plus pinned versions, regression gates, human approval on every plan |
-| Audit and retention | Basic change log | Source, AI output, reviewer decision, and final code kept together |
+| AI controls | Citations and confidence per field | Plus pinned versions, regression gates, rep review before client use, coder approval before load |
+| Audit and retention | Basic change log | Source, AI output, rep and client confirmation, coder decision, and final code kept together |
 | Model risk | Informal review | Documentation aligned with the firm's model governance policy |
 
 Regulatory parameters change every plan year. Each must be confirmed against the current official source by the compliance owner before it is encoded as a check.
 
 ## Testing and quality assurance
 
-A coded plan passes only when test claims pay, or reject, exactly as the plan document says they should.
+The product passes only when what the rep shows the client, what the client confirms, and what the coder loads are the same plan.
 
-1. **Golden dataset.** 25 public plans scored against CMS and issuer-published values for the prototype, grown to 200 client-verified plans for production. Every change is scored against it.
-2. **Field-level accuracy.** Precision and recall per field (tier cost shares by channel, deductible, OOP maximum, days supply, edits), not just an overall score.
-3. **Drug-level accuracy.** Tier and PA, ST, and QL flags scored per drug on a fixed sample, plus full-formulary comparison where a published file exists.
-4. **Test claims.** Standard scenarios per plan must produce the expected member cost or reject code: 12 in the prototype simulator, expanded in production and run in the platform test region.
-5. **Cross-document reconciliation.** Intake form, SBC, and SPD compared field by field; any conflict stops for a human decision.
-6. **Parallel run.** For two weeks before cutover, coders code new groups both ways; outputs are compared.
-7. **First-claims review.** After each group goes live, its first paid and rejected claims are compared with expected results.
-8. **Post-launch audit.** Sample 10% of approved plans monthly and track claim reprocessing traced to coding.
+1. **Golden dataset.** 25 public plans scored against CMS and issuer-published values for the prototype, grown to 200 client plans with their original sales documents and final coded configuration for production. Every change is scored against it.
+2. **Field-level accuracy.** Precision and recall per field, not just an overall score.
+3. **Drug-level accuracy.** Tier and PA, ST, and QL flags scored per drug on a fixed list, plus full-formulary comparison where a published file exists.
+4. **Gap detection.** Seeded conflicts and missing decisions must all be caught; false alarms are counted too, since noisy questions waste client goodwill.
+5. **Fit rating accuracy.** Ratings compared with the judgment of experienced coders on the golden set.
+6. **Comparison accuracy.** Year-over-year and plan-to-plan differences checked against known changes in the published files.
+7. **Member cost scenarios.** Standard scenarios per plan must produce the expected member cost or reject reason.
+8. **Handoff fidelity.** For each pilot account, the handoff package is compared with what the coder finally loaded; every difference is classified and fed back.
+9. **Pilot.** A small sales team uses the product alongside the current process for two weeks before go-live.
+10. **Post-launch audit.** Sample 10% of confirmed plans monthly and track post-sale disputes and claim reprocessing traced to intake.
 
 ## Success metrics
 
-Speed gains count only if accuracy holds. A faster process with more claim reprocessing is a failure.
+Speed counts only if accuracy holds. A faster sale that produces more disputes or claim reprocessing is a failure.
 
 | Metric | Prototype (week 4) | Production launch | 3 months after launch |
 | --- | --- | --- | --- |
 | Plan-level field accuracy | 88%+ overall | 92%+ | 96% |
-| Drug-level tier accuracy | 95%+ on sample | 98%+ | 99%+ |
-| Review time per standard plan | Under 20 min | Under 20 min | Under 12 min |
-| Plans needing no edits | Measured | 30% | 50% |
-| Test claims passing on first run | 95%+ simulated | 90% in test region | 97% |
-| Coding-related claim reprocessing | n/a | No increase | 30% reduction |
-| Groups per coder | Baseline | 1.5x | 2x |
-| Coder adoption on launch line of business | Positive verdict | 80% of new groups | 95% of new groups |
+| Drug-level tier accuracy | 95%+ on list | 98%+ | 99%+ |
+| Time to a reviewed plan summary | Under 20 min | Under 20 min | Under 12 min |
+| Gaps and conflicts found before client confirmation | Seeded items caught | 90% | 95% |
+| Clarification rounds after handoff | n/a | Baseline | 50% reduction |
+| Days from signed sale to complete intake | n/a | Baseline | 40% reduction |
+| Custom requests identified before commitment | Measured | 90% | 98% |
+| Handoff fields changed by the coder | Measured | Under 10% | Under 5% |
+| Post-sale disputes and intake-related reprocessing | n/a | No increase | 30% reduction |
+| Adoption by the pilot team | Positive verdict | 80% of new accounts | 95% of new accounts |
 
 Targets are proposals to be confirmed against the baseline measured in prototype week 1.
 
 ## Risks and mitigations
 
-The two biggest risks are a wrong code reaching members at the counter and an 8-week build slipping. Scope is kept tight to protect against both.
+The biggest risks are a rep relying on a wrong value in front of a client, and the product being read as a commitment it is not.
 
 | Risk | Mitigation |
 | --- | --- |
-| AI misreads or invents a benefit value | Source citation per field, confidence thresholds, human approval on every plan, test claims before load |
-| Drug names fail to match the compendium | Normalize through RxNorm; unmatched drugs route to manual review, never to a guessed match |
-| Adjudication platform has no usable API | Confirm in prototype week 1; fall back to generated load files or a reviewed keying sheet |
-| Drug compendium license or crosswalk delayed | Start procurement at the approval gate; RxNorm-only mode covers plan-level coding meanwhile |
-| Public plans understate commercial complexity | Synthetic intake forms in the prototype; client golden set started in sprint 1 |
-| Tight timeline slips | Fixed scope: one line of business, standard plans; anything else moves to a later release |
-| Delays waiting on data, SMEs, or approvals | Secure plan samples, coder time, and security review dates before kickoff |
-| Messy source documents (scans, spreadsheets, emails) | OCR quality check; unreadable documents route to manual coding |
-| Coder resistance | Coders validate outputs from week 1 and shape the review screen |
+| AI misreads or invents a benefit value | Source citation on every value, confidence thresholds, rep review before client use, client confirmation, coder approval before load |
+| Fit rating says "standard" for something that is not | Fit rules owned by coding and clinical teams; unclear cases default to "ask"; coder corrections update the rules |
+| Output treated as a quote or contract | Draft labels and approved disclaimers; pricing excluded; confirmation is a recorded step, not an export |
+| Rep commits to a custom item | Approval required and recorded before the item can be marked committed |
+| Prospect or client data exposed across accounts | Access limited to the account team; audit logging; NDA and retention rules enforced |
+| Sales adoption is low | Pilot team shapes the workspace from prototype week 1; the product removes work reps already dislike; CRM integration avoids double entry |
+| Coding team sees it as sales overriding their control | Coder approval and peer QA unchanged; coders own the fit rules; handoff fidelity reported openly |
+| Too many low-value questions for the client | False alarms measured; questions ranked; rep chooses which to send |
+| Drug names fail to match the compendium | Normalize through RxNorm; unmatched drugs flagged, never guessed |
+| CRM integration delayed | Confirm API access in prototype week 1; fall back to account import by file |
+| Drug compendium license or crosswalk delayed | Start procurement at the approval gate; RxNorm-only mode covers plan-level work meanwhile |
+| Public plans understate commercial complexity | Synthetic RFPs and intake forms in the prototype; client golden set started in sprint 1 |
+| Tight timeline slips | Fixed scope: one line of business, one pilot team; platform load and pricing move to later releases |
 | LLM provider changes model behavior | Pin model versions; rerun the regression suite before any upgrade |
 | Regulatory parameters change at plan-year rollover | Checks are data-driven and versioned by plan year; compliance owner signs off annually |
-| Launch collides with the renewal peak | Go live on off-cycle groups; no cutover during a plan's own renewal |
 
 ## Rollout and adoption
 
-The product launches on one line of business, proves itself for a month, then expands.
+The product launches with one pilot sales team on one line of business, proves itself for a month, then expands.
+
+**Sales and account management**
+
+- A pilot group of reps involved from prototype week 1, shaping the workspace and the client-facing summary
+- Short, scenario-based training: a new prospect, a renewal, a client question
+- Accounts and status live in the CRM they already use
+- Clear guidance on what the tool's output is and is not when shown to a client
 
 **Benefit coders and analysts**
 
-- Involved from prototype week 1 as validators of AI output
-- Roles shift toward review, exceptions, and QA rather than data entry
-- Accuracy dashboards shared openly so trust is earned with data
-
-**Implementation and account management**
-
-- Standard digital intake form replaces free-form emails and spreadsheets
-- Document conflicts surfaced at intake, when the client can still answer them
-- Setup status visible for each group
+- Own the fit rules and the handoff package format
+- Keep approval and peer QA exactly as today
+- Receive complete, cited intake instead of emails and spreadsheets
 
 **Clinical and formulary teams**
 
-- Client-specific drug overrides listed explicitly instead of buried in free text
-- New-drug and formulary-change handling added in a later release
+- Own formulary and clinical-program content in the catalog
+- See client-specific drug requests listed explicitly at proposal stage
+
+**Sales leadership**
+
+- Dashboard of accounts by readiness, open items, and custom requests awaiting approval
 
 **Expansion after launch**
 
-Add lines of business one at a time, then renewals at scale, custom plan designs, and mid-year amendments, each gated by the same accuracy targets.
+Add sales teams and lines of business one at a time. Later releases, each gated by the same accuracy targets: claims-based disruption analysis, mid-year amendments, direct load to the adjudication platform, and plan design recommendations.
 
 ## Approvals and support needed
 
 To start the prototype:
 
-- [ ] Sponsor approval for the 4-week prototype
+- [ ] Sponsor approval for the 4-week prototype, with a sales leader as co-sponsor
 - [ ] CMS public files downloaded and document links confirmed for the 25 selected plans
-- [ ] A few hours a week from two reviewers with pharmacy benefit coding experience
+- [ ] A few hours a week from two sales or account-management reviewers and one experienced benefit coder
+- [ ] Two or three anonymized examples of real sales documents (RFP, intake form) to model the synthetic ones on
 - [ ] LLM API access (no BAA needed while only public documents are used)
-- [ ] Demo date booked with decision makers for the end of week 4
+- [ ] Demo date booked with sales and operations decision makers for the end of week 4
 
 To start the production build (after the demo):
 
 - [ ] Go decision based on the approval criteria
-- [ ] Client plan documents with verified configuration, the client's code library and list IDs, and a HIPAA-eligible LLM environment under a BAA
+- [ ] Pilot sales team and launch line of business named
+- [ ] CRM API access and an integration contact
+- [ ] The firm's standard offering catalog, code library, and list IDs
+- [ ] Past accounts with original sales documents and final coded configuration, for the golden set
 - [ ] Drug compendium license and data feed
-- [ ] Adjudication platform test region access and an integration contact
-- [ ] Security and compliance review dates booked for build weeks 6 to 8
-- [ ] Launch line of business and go-live window confirmed
+- [ ] HIPAA-eligible LLM environment under a BAA
+- [ ] Named coder and clinical owners for fit rules, with time reserved through the build
+- [ ] Legal and compliance review of client-facing templates booked for build weeks 3 to 4, and security review for weeks 6 to 8
 
 ## Open decisions
 
@@ -355,18 +412,25 @@ These assumptions were made to complete the plan and should be confirmed before 
 
 | Decision | Assumed here | Why it matters |
 | --- | --- | --- |
-| Prototype plan mix | 15 Medicare Part D and 10 exchange plans | Part D has the richest public answer key; a commercial-only client may prefer all exchange plans |
-| Launch line of business | Not chosen | Sets the regulatory checks built in sprint 2 |
-| Target adjudication platform | Not named | Determines the code library format and load method |
-| Drug compendium | Medi-Span or First Databank, per client | Determines the drug crosswalk built in sprint 1 |
-| Shared infrastructure with medical benefit coding | Reuse where practical | Reduces build effort and gives coders one review tool |
-| Go-live window | Off-cycle groups or February | Avoids the January 1 renewal peak |
+| Primary users | Sales executives and account managers, with coders downstream | Sets the workspace design and the pilot team |
+| New business, renewals, or both | Both, with new business first in the demo | Changes which comparison views matter most |
+| Is output shown to clients | Yes, as a draft summary in an approved template | Triggers legal review and disclaimers |
+| Pricing and quoting | Out of scope | Adding it brings contract, underwriting, and rebate data into scope |
+| Platform load | Stays with coders; direct load is a later release | Keeps the 8-week build achievable |
+| CRM | Not named | Determines the integration built in sprint 1 |
+| Prototype plan mix | 15 Medicare Part D and 10 exchange plans | Part D has the richest public answer key; a commercial-only team may prefer all exchange plans |
+| Launch line of business | Not chosen | Sets the regulatory checks and fit rules built first |
+| Drug compendium | Medi-Span or First Databank, per the firm | Determines the drug crosswalk built in sprint 1 |
+| Build start | Immediately after the approval gate | Collides with the coding team's fourth-quarter peak |
 
 ## Glossary
 
 | Term | Meaning |
 | --- | --- |
 | PBM | Pharmacy benefit manager |
+| CRM | Customer relationship management system |
+| RFP | Request for proposal |
+| NDA | Non-disclosure agreement |
 | SBC | Summary of Benefits and Coverage |
 | SPD | Summary Plan Description |
 | EOC | Evidence of Coverage |
