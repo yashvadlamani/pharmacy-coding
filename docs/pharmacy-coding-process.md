@@ -2,11 +2,14 @@
 
 Pharmacy benefit coding is the work of translating a sold prescription-drug plan into the parameters of a claims adjudication platform, so that every claim submitted at a pharmacy counter pays exactly as the plan promises.
 
-This document describes how that work is done today, what gets coded, the code sets and standards involved, and where it goes wrong. It is the domain reference for the [architecture](architecture.md) and the [implementation plan](implementation-plan.md).
+This document is written for the sales and account management teams who sell and maintain those plans, and for the people building tools for them. The first half explains where sales fits and what sales decisions mean downstream. The second half is the coding reference: what gets coded, the code sets and standards involved, and where it goes wrong. It is the domain background for the [architecture](architecture.md) and the [implementation plan](implementation-plan.md).
 
 ## Contents
 
 - [Why pharmacy coding is its own discipline](#why-pharmacy-coding-is-its-own-discipline)
+- [The account lifecycle and where sales fits](#the-account-lifecycle-and-where-sales-fits)
+- [What sales needs to capture](#what-sales-needs-to-capture)
+- [Standard, configurable, and custom designs](#standard-configurable-and-custom-designs)
 - [Who is involved](#who-is-involved)
 - [Source documents](#source-documents)
 - [End-to-end process](#end-to-end-process)
@@ -36,11 +39,77 @@ Pharmacy coding shares its goal with medical benefit coding but differs in ways 
 
 Two consequences follow. A pharmacy plan has a **plan-level** layer (cost sharing, accumulators, channel rules) and a **drug-level** layer (which tier each drug sits on and which edits apply to it), and both must be right. And because adjudication is immediate, a coding error reaches members on day one rather than after a claims cycle.
 
+## The account lifecycle and where sales fits
+
+Coding is one stage in a longer account lifecycle. Sales and account management own the stages on either side of it, and what they capture determines how well coding goes.
+
+```mermaid
+flowchart LR
+    A[Prospect<br/>RFP, current plan<br/>documents] --> B[Proposal<br/>plan options,<br/>finalist meeting]
+    B --> C[Sold<br/>plan design<br/>agreed]
+    C --> D[Intake<br/>decisions confirmed<br/>in writing]
+    D --> E[Coding and testing<br/>build, QA,<br/>test claims]
+    E --> F[Go-live<br/>first claims]
+    F --> G[Service<br/>questions, mid-year<br/>changes]
+    G --> H[Renewal<br/>changes for<br/>next year]
+    H --> D
+```
+
+| Stage | Owner | What sales needs | What goes wrong without it |
+| --- | --- | --- | --- |
+| Prospect | Sales executive | A fast, accurate read of the prospect's current plan and formulary | Proposal built on a misunderstanding of the incumbent design |
+| Proposal | Sales executive | To know which requested features are standard and which are custom; member impact of each option | Features promised that cannot be administered; disruption discovered later |
+| Sold | Sales executive | A complete record of what was agreed, including exceptions | Verbal and email promises never reach coding |
+| Intake | Implementation manager, with sales | Every plan decision answered in writing, with conflicts between documents resolved | Repeated clarification rounds; missed effective date |
+| Coding and testing | Coding team | Status, and quick answers to coder questions | Rep learns of delays from the client |
+| Go-live | Account manager | Confidence that first claims pay as sold | Day-one complaints at the pharmacy counter |
+| Service | Account manager | Quick, accurate answers to "how does our plan handle this drug" | Wrong answers, or a ticket to the coding team for every question |
+| Renewal | Account manager | A clear list of what changes next year and what it does to members | Changes missed, or applied to the wrong plan year |
+
+The cheapest place to fix a coding error is the proposal or intake stage, before anything is built. A question a rep can ask in a client meeting costs minutes; the same question discovered during testing costs days, and discovered after go-live costs claim reprocessing and client trust.
+
+## What sales needs to capture
+
+Each row is a decision the coding team cannot make on the client's behalf. If the documents do not answer it, someone must ask.
+
+| Area | Decisions to confirm with the client |
+| --- | --- |
+| Plan structure | Effective date; plan year or calendar year; number of plan options; who is covered under each |
+| Tiers and cost share | Number of tiers; copay or coinsurance per tier; minimums and maximums; amounts for retail 30, retail 90, mail, and specialty |
+| Deductible | Separate pharmacy deductible or combined with medical; amount; which tiers it applies to; individual and family rules |
+| Out-of-pocket maximum | Separate or combined with medical; amount; embedded or aggregate for families |
+| Formulary | Which formulary; open or closed; client-specific additions or removals |
+| Exclusions | Coverage of weight-loss, fertility, erectile dysfunction, cosmetic, and over-the-counter products |
+| Preventive drugs | ACA $0 list confirmed; for HDHPs, whether a preventive list bypasses the deductible |
+| Clinical programs | Which prior authorization, step therapy, and quantity limit programs are in or out; never assume "standard" |
+| Specialty | Which specialty list; exclusive specialty pharmacy or open; day-supply limit |
+| Mail and retail 90 | Whether mail is offered, encouraged, or mandatory; whether 90-day fills are allowed at retail |
+| Brand and generic rules | Mandatory generic policy; what the member pays when a brand is requested with a generic available |
+| Manufacturer copay assistance | Whether coupon amounts count toward the deductible and OOP maximum |
+| Network | Broad or narrow retail network; out-of-network coverage |
+| Accumulator integration | Who the medical carrier is and whether accumulators are shared |
+| Mid-year start | Whether deductible and OOP credit carries over from the prior carrier |
+| Exceptions | Anything agreed outside the standard design, in writing, with who approved it |
+
+## Standard, configurable, and custom designs
+
+Not every plan design costs the same to administer. Knowing which category a request falls into before it is promised protects the timeline and the relationship.
+
+| Category | Meaning | Examples | Implication for the sale |
+| --- | --- | --- | --- |
+| Standard | Matches an existing offering exactly | Three-tier copay plan on the standard formulary with the standard clinical package | Fastest implementation; lowest error risk |
+| Configurable | Built from existing parameters and lists | Different copay amounts; a fourth tier; a separate pharmacy deductible | Routine; needs clear written decisions |
+| Custom | Needs a new list, special logic, or a manual process | Client-specific drug list; unusual accumulator rule; a carve-out for one drug class | Longer lead time, possible fees, more testing; needs approval before commitment |
+| Not supported | Cannot be administered as written | A cost-share rule the platform has no parameter for | Offer the nearest supported alternative before the proposal goes out |
+
+The boundaries differ by organization and platform. They are set by the coding and clinical teams, and sales should work from their current rules rather than from memory of past deals.
+
 ## Who is involved
 
 | Role | Responsibility |
 | --- | --- |
-| Sales / account management | Sells the plan design, gathers client intent, owns the client relationship |
+| Sales executive | Sells the plan design to new clients, gathers client intent, sets expectations on what can be administered |
+| Account manager | Owns the client relationship after the sale: service questions, mid-year changes, renewal |
 | Implementation manager | Runs the new-client or renewal timeline and collects the intake documents |
 | Benefit analyst (requirements) | Interprets client intent into unambiguous benefit requirements |
 | Benefit coder (configuration) | Enters plan, drug-list, and pricing parameters into the adjudication platform |
@@ -284,18 +353,19 @@ When an error is found after go-live, the fix is not only a configuration change
 
 ## Where automation fits
 
-The steps that consume the most skilled time are the ones that depend on reading documents and comparing them: requirements interpretation, configuration, peer QA, and writing expected test results.
+The work that most affects coding quality happens before coding: reading plan documents, comparing them, spotting what is missing, and knowing what can be built. Sales and account teams do this today by hand, usually without the coding team's knowledge of the platform.
 
-| Manual step | What AI assistance does | What stays human |
+| What sales does by hand today | What AI assistance does | What stays human |
 | --- | --- | --- |
-| Reading intake forms, SBCs, and SPDs | Extracts every benefit field with the source sentence and a confidence score | Resolving true ambiguity with the client |
-| Finding conflicts between documents | Compares documents field by field and lists disagreements | Deciding which document governs |
-| Choosing system parameters and list IDs | Maps extracted fields to the platform's code library and drug lists | Approving unusual or client-specific mappings |
-| Peer QA | Reconciles the coded plan against the source documents automatically | Reviewing flagged items |
-| Writing test claims | Generates scenarios and expected results from the extracted benefit | Approving the test set and any failures |
-| Go-live monitoring | Compares first live claims with expected results | Acting on exceptions |
+| Reading a prospect's or client's plan documents | Extracts every benefit field with the source sentence and a confidence score, shown as a plain-language summary | Checking the summary and judging what matters to this client |
+| Working out whether a requested design can be administered | Rates each feature standard, configurable, custom, or not supported, using the coding team's rules | Approving custom commitments |
+| Finding gaps and conflicts between documents | Compares documents field by field and writes the questions to ask the client | Asking, and deciding which answer governs |
+| Comparing plan options or plan years | Lists only the differences, side by side | Recommending an option |
+| Explaining member impact | Shows which commonly used drugs change tier or coverage, and what a member pays in standard scenarios | Positioning the change with the client |
+| Handing off to coding | Produces a structured package with proposed codes, citations, and test claims | Coder approval, peer QA, and load |
+| Answering service questions | Looks up how the plan treats a drug or scenario, with the source | Confirming with the coding team where the answer matters |
 
-The governing principle is that **AI drafts and humans decide**. Nothing loads to the adjudication platform without passing automated checks and a coder's approval. The pipeline that delivers this is described in [architecture.md](architecture.md), and the delivery plan in [implementation-plan.md](implementation-plan.md).
+The governing principle is that **AI drafts, sales confirms, and coders approve**. Nothing goes to a client without a rep's review, and nothing loads to the adjudication platform without a coder's approval. The workspace and pipeline that deliver this are described in [architecture.md](architecture.md), and the delivery plan in [implementation-plan.md](implementation-plan.md).
 
 ## Glossary
 
